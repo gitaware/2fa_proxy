@@ -2,6 +2,10 @@
 2FA Proxy is a 2FA proxy portal for non SAML/OpenID/2FA enabled web applications running under Apache.  
 It is probably easy to use this application also under NGINX, but this has not been tested.  
 
+The world has fantastic open source SSO solutions like Authelia and Authenik, but i felt a more lightweight solution 
+was needed for applications that do not support SAML or potentially for environments where it is technically not possible 
+to run such a (fantastic) SSO solution.
+
 ## Admin Interface
 The admin interface is build with modern interfaces in mind. It relies on datatables, bootstrap and ajax to view users. Clicking on the 
 `admin` or `active` columns will toggle these columns for the user in that row. 
