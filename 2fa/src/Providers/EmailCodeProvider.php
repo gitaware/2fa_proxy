@@ -11,6 +11,7 @@ class EmailCodeProvider implements ProviderInterface {
         $this->db          = $db;
         $this->config      = $config;
         $this->mailservice = new MailService();
+        $this->mfa_bytes   = 5; //number of bytes for 2FA code per email
     }
 
     public function getId(): string {
@@ -196,7 +197,7 @@ class EmailCodeProvider implements ProviderInterface {
 
         if (!$email) return [false, 'Email is required.'];
 
-        $code = strtoupper(bin2hex(random_bytes(5))); // Alphanumeric 6-char code
+        $code = strtoupper(bin2hex(random_bytes($this->mfa_bytes)));
         $_SESSION['email_otp'][$email] = $code;
         $this->mailservice->sendEmail($email, 'Your login code', "Your one-time code is: $code");
         return [true, 'Code sent to your email. Please enter it below.'];
@@ -208,8 +209,14 @@ class EmailCodeProvider implements ProviderInterface {
 
         if (!$email) return [false, 'Email is required.'];
 
+        $user = $this->db->getUserByEmail($email);
+        $user['isactive'] = $user['isactive'] ?? true;
+        if ( !$user or !$user['isactive'] ) {
+          return [false, 'Inactive user'];
+        }
+
         if (empty($inputCode)) {
-            $code = strtoupper(bin2hex(random_bytes(3))); // Alphanumeric 6-char code
+            $code = strtoupper(bin2hex(random_bytes($this->mfa_bytes)));
             $_SESSION['email_otp'][$email] = $code;
             $this->mailservice->sendEmail($email, 'Your login code', "Your one-time code is: $code");
             return [false, 'Code sent to your email. Please enter it below.'];

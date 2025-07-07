@@ -11,8 +11,12 @@
         <input type="text" name="name" class="form-control" required value="{$name}">
     </div>
     <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="isAdminSwitch" name="is_admin" value="1" {if $is_admin}checked{/if}>
+        <input class="form-check-input" type="checkbox" id="isAdminSwitch" name="is_admin" value="1" {if $isadmin}checked{/if}>
         <label class="form-check-label" for="isAdminSwitch">Is Admin</label>
+    </div>
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="isActiveSwitch" name="is_active" value="1" {if $isactive}checked{/if}>
+        <label class="form-check-label" for="isActiveSwitch">Active</label>
     </div>
     <div class="mb-3">
         <label>Email</label>

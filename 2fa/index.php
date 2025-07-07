@@ -33,6 +33,7 @@ $providerManager->registerProvider(new EmailCodeProvider($userDb, $config));
 $selectedMethod = $_POST['method'] ?? null;
 $error = null;
 
+//send email 2FA code
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle AJAX request to send code only
     $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) 

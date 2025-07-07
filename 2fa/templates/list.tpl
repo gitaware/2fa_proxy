@@ -3,7 +3,7 @@
 {extends file="admin_layout.tpl"}
 
 {block name="pagecss"}
-.toggle-admin {
+.toggler {
     text-decoration: none;
     cursor: pointer;
     display: inline-block;
@@ -11,13 +11,13 @@
     border-radius: 4px;
 }
 
-.toggle-admin i {
+.toggler i {
     font-size: 1.2em;
     display: inline-block;
     transition: transform 0.2s ease, background-color 0.2s;
 }
 
-.toggle-admin:hover i {
+.toggler:hover i {
     transform: scale(1.2);
     background-color: rgba(0, 0, 0, 0.05);
     border-radius: 4px;
@@ -37,7 +37,8 @@
     <tr>
       <th>Name</th>
       <th>Email</th>
-      <th>Admin?</th>
+      <th>Admin</th>
+      <th>Active</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -91,7 +92,24 @@ $(document).ready(function () {
     columns: [
       { data: 'name' },
       { data: 'email' },
-      { data: 'isadmin' },
+      { data: 'isadmin',
+        render: function(data, type, row) {
+          if (data) {
+            return '<a href="#" class="toggler toggle-admin"><i class="bi bi-check-circle-fill text-success"></i></a>';
+          } else {
+            return '<a href="#" class="toggler toggle-admin"><i class="bi bi-x-circle-fill text-danger"></i></a>';
+          }
+        }
+      },
+      { data: 'isactive',
+        render: function(data, type, row) {
+          if (data) {
+            return '<a href="#" class="toggler toggle-active"><i class="bi bi-check-circle-fill text-success"></i></a>';
+          } else {
+            return '<a href="#" class="toggler toggle-active"><i class="bi bi-x-circle-fill text-danger"></i></a>';
+          }
+        }
+      },
       { data: 'actions', orderable: false, searchable: false }
     ]
   });
@@ -110,6 +128,24 @@ $(document).ready(function () {
         $('#users-table').DataTable().ajax.reload(null, false);
       } else {
         alert('Failed to toggle admin: ' + (res.error || 'Unknown error'));
+      }
+    }, 'json');
+  });
+
+  $(document).on('click', '.toggle-active', function (e) {
+    e.preventDefault();
+
+    const row = $(this).closest('tr');
+    const email = row.data('email');
+
+    $.post('user/toggle-active', {
+      email: email,
+      _csrf_token: '{$csrf_token}'
+    }, function (res) {
+      if (res.success) {
+        $('#users-table').DataTable().ajax.reload(null, false);
+      } else {
+        alert('Failed to toggle value: ' + (res.error || 'Unknown error'));
       }
     }, 'json');
   });

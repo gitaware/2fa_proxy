@@ -77,8 +77,11 @@ class TOTPProvider implements ProviderInterface {
         $code = trim($data['code'] ?? '');
 
         $user = $this->db->getUserByEmail($email);
+        $user['isactive'] = $user['isactive'] ?? true;
 
-        if (!$user) return [false, 'User not found.'];
+        if ( !$user or !$user['isactive'] ) {
+          return [false, 'User not found.'];
+        }
 
         $totp = \OTPHP\TOTP::create($user['secret']);
         $totp->setLabel($user['email']);

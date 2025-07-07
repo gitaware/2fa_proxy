@@ -141,10 +141,14 @@ class Admin
         }
 
         $user = $this->userdb->getUserByEmail($email);
+        $user['isactive'] = $user['isactive'] ?? true;
+        $user['isadmin'] = !empty($user['isadmin']);
 
         $this->smarty->assign('csrf_token', $csrfTokenValue);
         $this->smarty->assign('name',  $user['name']);
         $this->smarty->assign('email', $user['email']);
+        $this->smarty->assign('isadmin', $user['isadmin']);
+        $this->smarty->assign('isactive', $user['isactive']);
 
         $html = $this->smarty->fetch('edituserform.tpl');
         $response->getBody()->write($html);
@@ -220,15 +224,15 @@ class Admin
     {
         $params = (array)$request->getParsedBody() + $request->getQueryParams();
 
-        $draw = intval($params['draw'] ?? 0);
-        $start = intval($params['start'] ?? 0);
+        $draw   = intval($params['draw'] ?? 0);
+        $start  = intval($params['start'] ?? 0);
         $length = intval($params['length'] ?? 10);
         $searchValue = $params['search']['value'] ?? '';
 
         $orderColumnIndex = intval($params['order'][0]['column'] ?? 0);
         $orderDir = $params['order'][0]['dir'] ?? 'asc';
 
-        $columns = ['name', 'email', 'isadmin', 'actions'];
+        $columns = ['name', 'email', 'isadmin', 'isactive', 'actions'];
         $sortColumn = $columns[$orderColumnIndex] ?? 'name';
 
         $allUsers = $this->userdb->getAllUsers();
@@ -260,19 +264,20 @@ class Admin
         $data = array_map(function ($user) use ($csrfTokenValue) {
             $emailEsc = htmlspecialchars($user['email']);
             $isAdmin = !empty($user['isadmin']); // Default to false if not set
-            #$adminIcon = $isAdmin
-            #    ? '<a href="#" class="toggle-admin"><span class="text-success">&#10004;</span></a>'
-            #    : '<a href="#" class="toggle-admin"><span class="text-danger">&#10006;</span></a>';
-            $adminIcon = $isAdmin
-                ? '<a href="#" class="toggle-admin"><i class="bi bi-check-circle-fill text-success"></i></a>'
-                : '<a href="#" class="toggle-admin"><i class="bi bi-x-circle-fill text-danger"></i></a>';
-
+            $isactive = $user['isactive'] ?? true;  // default to true if not set
+            //$adminIcon = $isAdmin
+            //    ? '<a href="#" class="toggler toggle-admin"><i class="bi bi-check-circle-fill text-success"></i></a>'
+            //    : '<a href="#" class="toggler toggle-admin"><i class="bi bi-x-circle-fill text-danger"></i></a>';
+            //$activeIcon = $isactive
+            //    ? '<a href="#" class="toggler toggle-active"><i class="bi bi-check-circle-fill text-success"></i></a>'
+            //    : '<a href="#" class="toggler toggle-active"><i class="bi bi-x-circle-fill text-danger"></i></a>';
 
             return [
-                'name' => htmlspecialchars($user['name']),
-                'email' => $emailEsc,
-                'isadmin' => $adminIcon,
-                'actions' => <<<HTML
+                'name'     => htmlspecialchars($user['name']),
+                'email'    => $emailEsc,
+                'isadmin'  => $isAdmin,
+                'isactive' => $isactive,
+                'actions'  => <<<HTML
 <form method="post" action="user/reset" style="display:inline">
     <input type="hidden" name="_csrf_token" value="{$csrfTokenValue}" />
     <input type="hidden" name="email" value="{$emailEsc}">
@@ -494,7 +499,44 @@ HTML,
             ->withHeader('Location', $this->basePath.'/admin');
     }
 
-    public function toggleAdmin(Request $request, Response $response): Response
+    //public function toggleAdmin(Request $request, Response $response): Response
+    //{
+    //    $params = (array)$request->getParsedBody();
+    //    $email = $params['email'] ?? '';
+    //    $token = $params['_csrf_token'] ?? '';
+
+    //    // CSRF token validation
+    //    $csrfId = $this->config->get('csrf')->get('token_id', 'admin_action');
+    //    if (!$this->csrfManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken($csrfId, $token))) {
+    //        return $response
+    //            ->withStatus(400)
+    //            ->withHeader('Content-Type', 'application/json')
+    //            ->write(json_encode(['success' => false, 'error' => 'Invalid CSRF token.']));
+    //    }
+
+    //    // Prevent self-modification
+    //    $currentUserEmail = $_SESSION['email'] ?? '';
+    //    if (strcasecmp($email, $currentUserEmail) === 0) {
+    //        $response->getBody()->write(json_encode(['success' => false, 'error' => 'You cannot change your own admin status.']));
+    //        return $response
+    //            ->withStatus(403)
+    //            ->withHeader('Content-Type', 'application/json');
+    //    }
+
+    //    if (!$email || !$this->userdb->getUserByEmail($email)) {
+    //        return $response
+    //            ->withStatus(404)
+    //            ->withHeader('Content-Type', 'application/json')
+    //            ->write(json_encode(['success' => false, 'error' => 'User not found.']));
+    //    }
+
+    //    $result = $this->userdb->toggleAdminStatus($email);
+
+    //    $response->getBody()->write(json_encode(['success' => $result]));
+    //    return $response->withHeader('Content-Type', 'application/json');
+    //}
+
+    public function toggleField(Request $request, Response $response, $field, $default): Response
     {
         $params = (array)$request->getParsedBody();
         $email = $params['email'] ?? '';
@@ -509,15 +551,6 @@ HTML,
                 ->write(json_encode(['success' => false, 'error' => 'Invalid CSRF token.']));
         }
 
-        // Prevent self-modification
-        $currentUserEmail = $_SESSION['email'] ?? '';
-        if (strcasecmp($email, $currentUserEmail) === 0) {
-            $response->getBody()->write(json_encode(['success' => false, 'error' => 'You cannot change your own admin status.']));
-            return $response
-                ->withStatus(403)
-                ->withHeader('Content-Type', 'application/json');
-        }
-
         if (!$email || !$this->userdb->getUserByEmail($email)) {
             return $response
                 ->withStatus(404)
@@ -525,7 +558,16 @@ HTML,
                 ->write(json_encode(['success' => false, 'error' => 'User not found.']));
         }
 
-        $result = $this->userdb->toggleAdminStatus($email);
+        // Prevent self-modification
+        $currentUserEmail = $_SESSION['email'] ?? '';
+        if (strcasecmp($email, $currentUserEmail) === 0) {
+            $response->getBody()->write(json_encode(['success' => false, 'error' => 'You cannot change your own status.']));
+            return $response
+                ->withStatus(403)
+                ->withHeader('Content-Type', 'application/json');
+        }
+
+        $result = $this->userdb->toggleBool($email, $field, $default);
 
         $response->getBody()->write(json_encode(['success' => $result]));
         return $response->withHeader('Content-Type', 'application/json');

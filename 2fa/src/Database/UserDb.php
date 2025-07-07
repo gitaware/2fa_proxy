@@ -73,6 +73,12 @@ class UserDb extends JsonDb
         return $user && !empty($user['isadmin']);
     }
 
+    public function isActive(string $email): bool
+    {
+        $user = $this->getUserByEmail($email);
+        return $user && !empty($user['isactive']);
+    }
+
     private function generateNewId(): int
     {
         $maxId = 0;
@@ -86,11 +92,24 @@ class UserDb extends JsonDb
         return $maxId + 1;
     }
 
-    public function toggleAdminStatus(string $email): bool
+    //public function toggleAdminStatus(string $email): bool
+    //{
+    //    foreach ($this->data['users'] as &$user) {
+    //        if (strcasecmp($user['email'], $email) === 0) {
+    //            $user['isadmin'] = !($user['isadmin'] ?? false);
+    //            $this->save();
+    //            return true;
+    //        }
+    //    }
+
+    //    return false;
+    //}
+
+    public function toggleBool(string $email, $field): bool
     {
         foreach ($this->data['users'] as &$user) {
             if (strcasecmp($user['email'], $email) === 0) {
-                $user['isadmin'] = !($user['isadmin'] ?? false);
+                $user[$field] = !($user[$field] ?? true);
                 $this->save();
                 return true;
             }

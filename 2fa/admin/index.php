@@ -148,7 +148,10 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($adminApp)  {
       return $adminApp->editUser($request, $response);
   });
   $group->post('/user/toggle-admin', function (Request $request, Response $response) use ($adminApp) {
-      return $adminApp->toggleAdmin($request, $response);
+      return $adminApp->toggleField($request, $response, 'isadmin', false);
+  });
+  $group->post('/user/toggle-active', function (Request $request, Response $response) use ($adminApp) {
+      return $adminApp->toggleField($request, $response, 'isactive', true);
   });
 })->add($adminAuthMiddleware);
 
