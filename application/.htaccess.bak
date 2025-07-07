@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^ /2fa/session_check.php [L]

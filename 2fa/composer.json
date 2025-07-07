@@ -1,0 +1,50 @@
+{
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "require": {
+        "spomky-labs/otphp": "^11.3",
+        "endroid/qr-code": "^4.0",
+        "smarty/smarty": "^4.5",
+        "symfony/security-csrf": "^7.0",
+        "phpmailer/phpmailer": "^6.9",
+        "npm-asset/bootstrap": "^5.3",
+        "npm-asset/bootstrap-icons": "^1.11",
+        "components/jquery": "^3.7",
+        "datatables.net/datatables.net": "^2",
+        "datatables.net/datatables.net-dt": "^2",
+        "slim/slim": "^4.1",
+        "slim/psr7": "^1"
+    },
+    "extra": {
+      "asset-installer-paths": {
+        "npm-asset-library": "vendor/npm-asset"
+      }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php scripts/copy-bootstrap.php",
+            "mkdir -p public/assets/bootstrap-icons",
+            "cp -r vendor/npm-asset/bootstrap-icons/font public/assets/bootstrap-icons/font",
+            "mkdir -p public/assets/datatables/js",
+            "mkdir -p public/assets/datatables/css",
+            "mkdir -p public/assets/jquery",
+            "cp vendor/components/jquery/jquery.min.js public/assets/jquery/",
+            "cp vendor/datatables.net/datatables.net/js/dataTables.min.js public/assets/datatables/js/",
+            "cp vendor/datatables.net/datatables.net-dt/css/dataTables.dataTables.min.css public/assets/datatables/css/"
+        ],
+        "post-update-cmd": [
+            "@post-install-cmd"
+        ]
+    },
+    "autoload": {
+      "psr-4": {
+        "App\\Admin\\": "admin/",
+        "App\\": "src/"
+      }
+    }
+}
+

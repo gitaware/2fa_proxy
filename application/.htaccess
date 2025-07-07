@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Extract PHPSESSID from cookie into ENV variable `SESSID`
+RewriteCond %{HTTP:Cookie} PHPSESSID=([^;]+)
+RewriteRule ^ - [E=SESSID:%1]
+
+RewriteCond /dir/to/my/public_html/2fa/sessions/%{ENV:SESSID} !-f
+
+# If session file doesn't exist → redirect to session_check.php
+# Pass the original requested URI as a query param to session_check.php
+RewriteRule ^(.*)$ /2fa/session_check.php?redirect=$1 [L]

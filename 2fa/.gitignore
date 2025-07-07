@@ -1,0 +1,7 @@
+templates_c/*
+*.bak
+data/*.json
+sessions/*
+vendor
+public
+composer.lock
