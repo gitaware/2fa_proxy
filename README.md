@@ -3,6 +3,8 @@
 It is probably easy to use this application also under NGINX, but this has not been tested.  
 
 ## Admin Interface
+The admin interface is build with modern interfaces in mind. It relies on datatables, bootstrap and ajax to view users. Clicking on the 
+`admin` or `active` columns will toggle these columns for the user in that row. 
 ![Admin Interface](img/admin_list.png)
 
 ## 2FA Providers
