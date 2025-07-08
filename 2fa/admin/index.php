@@ -29,10 +29,9 @@ $basePath = '/' . implode('/', $pathParts);
 
 $userDb      = new UserDb(__DIR__ . '/../data/users.json');
 $config      = new ConfigService(__DIR__ . '/../data/config.json');
-#$db          = new JsonDb(__DIR__ . '/../users.json');
 
 $csrfManager = new CsrfTokenManager();
-$mailer      = new MailService();
+$mailer      = new MailService($config);
 $adminApp    = new Admin($userDb, $config, $csrfManager, $mailer, $basePath);
 $adminAuthMiddleware = new AdminAuthMiddleware($userDb, $config);
 

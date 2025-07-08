@@ -265,35 +265,13 @@ class Admin
             $emailEsc = htmlspecialchars($user['email']);
             $isAdmin = !empty($user['isadmin']); // Default to false if not set
             $isactive = $user['isactive'] ?? true;  // default to true if not set
-            //$adminIcon = $isAdmin
-            //    ? '<a href="#" class="toggler toggle-admin"><i class="bi bi-check-circle-fill text-success"></i></a>'
-            //    : '<a href="#" class="toggler toggle-admin"><i class="bi bi-x-circle-fill text-danger"></i></a>';
-            //$activeIcon = $isactive
-            //    ? '<a href="#" class="toggler toggle-active"><i class="bi bi-check-circle-fill text-success"></i></a>'
-            //    : '<a href="#" class="toggler toggle-active"><i class="bi bi-x-circle-fill text-danger"></i></a>';
 
             return [
                 'name'     => htmlspecialchars($user['name']),
                 'email'    => $emailEsc,
                 'isadmin'  => $isAdmin,
                 'isactive' => $isactive,
-                'actions'  => <<<HTML
-<form method="post" action="user/reset" style="display:inline">
-    <input type="hidden" name="_csrf_token" value="{$csrfTokenValue}" />
-    <input type="hidden" name="email" value="{$emailEsc}">
-    <button class="btn btn-warning btn-sm">Reset 2FA</button>
-</form>
-<button class="btn btn-info btn-sm" 
-    onclick="openModal('2FA QR Code', 'qr?email=' + encodeURIComponent('{$emailEsc}') + '&_csrf_token=' + encodeURIComponent('{$csrfTokenValue}'))">
-  View QR
-</button>
-<button class="btn btn-info btn-sm edit-user">Edit</button>
-<form method="post" action="user/delete" style="display:inline" onsubmit="return confirm('Delete this user?');">
-    <input type="hidden" name="_csrf_token" value="{$csrfTokenValue}" />
-    <input type="hidden" name="email" value="{$emailEsc}">
-    <button class="btn btn-danger btn-sm">Delete</button>
-</form>
-HTML,
+                'actions'  => "",
                 'DT_RowAttr' => [
                     'data-email' => $emailEsc
                     //can add extra attributes here
@@ -359,13 +337,18 @@ HTML,
         }
 
         if (!empty($errors)) {
-            $payload = ['errors' => $errors];
+            $payload = ['success' => false, 'errors' => $errors];
             $response->getBody()->write(json_encode($payload));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
+        $response->getBody()->write(json_encode(['success' => true]));
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
+
         // Redirect to the user list page after deletion
-        return $response->withHeader('Location', $this->basePath.'/admin')->withStatus(302);
+        //return $response->withHeader('Location', $this->basePath.'/admin')->withStatus(302);
     }
 
     public function resetUser(Request $request, Response $response): Response
@@ -395,13 +378,17 @@ HTML,
         }
 
         if (!empty($errors)) {
-            $payload = ['errors' => $errors];
+            $payload = ['success' => false, 'errors' => $errors];
             $response->getBody()->write(json_encode($payload));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
+        $payload = ['success' => true];
+        $response->getBody()->write(json_encode($payload));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
         // Redirect to user list after reset
-        return $response->withHeader('Location', $this->basePath.'/admin')->withStatus(302);
+        //return $response->withHeader('Location', $this->basePath.'/admin')->withStatus(302);
     }
 
     // Show login form
@@ -498,43 +485,6 @@ HTML,
             ->withStatus(302)
             ->withHeader('Location', $this->basePath.'/admin');
     }
-
-    //public function toggleAdmin(Request $request, Response $response): Response
-    //{
-    //    $params = (array)$request->getParsedBody();
-    //    $email = $params['email'] ?? '';
-    //    $token = $params['_csrf_token'] ?? '';
-
-    //    // CSRF token validation
-    //    $csrfId = $this->config->get('csrf')->get('token_id', 'admin_action');
-    //    if (!$this->csrfManager->isTokenValid(new \Symfony\Component\Security\Csrf\CsrfToken($csrfId, $token))) {
-    //        return $response
-    //            ->withStatus(400)
-    //            ->withHeader('Content-Type', 'application/json')
-    //            ->write(json_encode(['success' => false, 'error' => 'Invalid CSRF token.']));
-    //    }
-
-    //    // Prevent self-modification
-    //    $currentUserEmail = $_SESSION['email'] ?? '';
-    //    if (strcasecmp($email, $currentUserEmail) === 0) {
-    //        $response->getBody()->write(json_encode(['success' => false, 'error' => 'You cannot change your own admin status.']));
-    //        return $response
-    //            ->withStatus(403)
-    //            ->withHeader('Content-Type', 'application/json');
-    //    }
-
-    //    if (!$email || !$this->userdb->getUserByEmail($email)) {
-    //        return $response
-    //            ->withStatus(404)
-    //            ->withHeader('Content-Type', 'application/json')
-    //            ->write(json_encode(['success' => false, 'error' => 'User not found.']));
-    //    }
-
-    //    $result = $this->userdb->toggleAdminStatus($email);
-
-    //    $response->getBody()->write(json_encode(['success' => $result]));
-    //    return $response->withHeader('Content-Type', 'application/json');
-    //}
 
     public function toggleField(Request $request, Response $response, $field, $default): Response
     {

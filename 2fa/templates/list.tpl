@@ -110,8 +110,59 @@ $(document).ready(function () {
           }
         }
       },
-      { data: 'actions', orderable: false, searchable: false }
+      { data: 'actions', 
+        render:  function(data, type, row) {
+               const rowdata = $(this).closest('tr');
+               const email = rowdata.data('email');
+               return '<form class="reset_2fa" style="display:inline">' +
+                      '    <button class="btn btn-warning btn-sm">Reset 2FA</button>' +
+                      '</form>' +
+                      '<button class="btn btn-info btn-sm show-qr-code">View QR</button>' +
+                      '<button class="btn btn-info btn-sm edit-user">Edit</button>' +
+                      '<form class="delete-user" style="display:inline" ' +
+                          'onsubmit="return confirm(\'Delete this user?\');">' +
+                      '  <button class="btn btn-danger btn-sm">Delete</button>' +
+                      '</form>';
+        },
+        orderable: false, 
+        searchable: false }
     ]
+  });
+
+  $(document).on('submit', '.delete-user', function (e) {
+    e.preventDefault();
+
+    const row = $(this).closest('tr');
+    const email = row.data('email');
+
+    $.post('user/delete', {
+      email: email,
+      _csrf_token: '{$csrf_token}'
+    }, function (res) {
+      if (res.success) {
+        $('#users-table').DataTable().ajax.reload(null, false);
+      } else {
+        alert('Failed to delete user: ' + (res.error || 'Unknown error'));
+      }
+    }, 'json');
+  });
+
+  $(document).on('submit', '.reset_2fa', function (e) {
+    e.preventDefault();
+
+    const row = $(this).closest('tr');
+    const email = row.data('email');
+
+    $.post('user/reset', {
+      email: email,
+      _csrf_token: '{$csrf_token}'
+    }, function (res) {
+      if (res.success) {
+        $('#users-table').DataTable().ajax.reload(null, false);
+      } else {
+        alert('Failed to reset 2FA for user: ' + (res.error || 'Unknown error'));
+      }
+    }, 'json');
   });
 
   $(document).on('click', '.toggle-admin', function (e) {
@@ -164,6 +215,14 @@ $(document).ready(function () {
     const row = $(this).closest('tr');
     const email = row.data('email');
     openModal('Edit User', 'user/edit?email='+email, () => bindModalForm("editUserForm", 'user/edit'));
+  });
+
+  $(document).on('click', '.show-qr-code', function (e) {
+    e.preventDefault();
+
+    const row = $(this).closest('tr');
+    const email = row.data('email');
+    openModal('2FA QR Code', 'qr?email='+email);
   });
 
   $(document).on('modalFormSuccess', function (e, formId, responseData) {

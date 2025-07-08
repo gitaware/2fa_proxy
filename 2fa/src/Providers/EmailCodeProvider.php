@@ -10,7 +10,7 @@ class EmailCodeProvider implements ProviderInterface {
     public function __construct($db, $config) {
         $this->db          = $db;
         $this->config      = $config;
-        $this->mailservice = new MailService();
+        $this->mailservice = new MailService($config);
         $this->mfa_bytes   = 5; //number of bytes for 2FA code per email
     }
 
