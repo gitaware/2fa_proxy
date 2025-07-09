@@ -103,7 +103,7 @@ $app->post('/admin/login[/]', function ($request, $response) use ($adminApp) {
     return $adminApp->processLogin($request, $response);
 });
 
-$app->get('/admin/logout[/]', function (Request $request, Response $response) use ($app) {
+$app->get('/admin/logout[/]', function (Request $request, Response $response) use ($adminApp) {
     return $adminApp->logout($request, $response);
 });
 
